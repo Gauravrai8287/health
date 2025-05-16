@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'home_page.dart'; // Ensure it's named correctly
+import 'home_page.dart';
 
 class HealthMonitor extends StatefulWidget {
   @override
@@ -11,9 +11,10 @@ class HealthMonitor extends StatefulWidget {
 class _HealthMonitorState extends State<HealthMonitor> {
   final DatabaseReference dbRef = FirebaseDatabase.instance.ref();
 
-  double temperature = 0.0;
-  int heartRate = 0;
-  double spo2 = 0.0;
+  double dhtTemperature = 0.0;
+  double humidity = 0.0;
+  double kyTemperature = 0.0;
+  int heartRaw = 0;
 
   @override
   void initState() {
@@ -23,31 +24,40 @@ class _HealthMonitorState extends State<HealthMonitor> {
 
   Future<void> initializeFirebaseListeners() async {
     try {
-      await Firebase.initializeApp(); // Ensure Firebase is initialized
+      await Firebase.initializeApp();
 
-      dbRef.child("temperature").onValue.listen((event) {
+      dbRef.child("dht11/temperature").onValue.listen((event) {
         final val = event.snapshot.value;
         if (val != null) {
           setState(() {
-            temperature = double.tryParse(val.toString()) ?? 0.0;
+            dhtTemperature = double.tryParse(val.toString()) ?? 0.0;
           });
         }
       });
 
-      dbRef.child("heartrate").onValue.listen((event) {
+      dbRef.child("dht11/humidity").onValue.listen((event) {
         final val = event.snapshot.value;
         if (val != null) {
           setState(() {
-            heartRate = int.tryParse(val.toString()) ?? 0;
+            humidity = double.tryParse(val.toString()) ?? 0.0;
           });
         }
       });
 
-      dbRef.child("spo2").onValue.listen((event) {
+      dbRef.child("ky028/temperature").onValue.listen((event) {
         final val = event.snapshot.value;
         if (val != null) {
           setState(() {
-            spo2 = double.tryParse(val.toString()) ?? 0.0;
+            kyTemperature = double.tryParse(val.toString()) ?? 0.0;
+          });
+        }
+      });
+
+      dbRef.child("hw827/heart_raw").onValue.listen((event) {
+        final val = event.snapshot.value;
+        if (val != null) {
+          setState(() {
+            heartRaw = int.tryParse(val.toString()) ?? 0;
           });
         }
       });
@@ -66,7 +76,7 @@ class _HealthMonitorState extends State<HealthMonitor> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const hame_page()), // Check spelling
+              MaterialPageRoute(builder: (context) => const hame_page()),
             );
           },
           icon: const Icon(Icons.arrow_back_outlined),
@@ -88,11 +98,13 @@ class _HealthMonitorState extends State<HealthMonitor> {
                 ),
               ),
               const SizedBox(height: 30),
-              buildDataCard("Temperature: ${temperature.toStringAsFixed(2)} °C"),
+              buildDataCard("DHT11 Temperature: ${dhtTemperature.toStringAsFixed(2)} °C"),
               const SizedBox(height: 20),
-              buildDataCard("Heart Rate: $heartRate BPM"),
+              buildDataCard("DHT11 Humidity: ${humidity.toStringAsFixed(2)}%"),
               const SizedBox(height: 20),
-              buildDataCard("SpO2: ${spo2.toStringAsFixed(1)}%"),
+              buildDataCard("KY028 Temperature: ${kyTemperature.toStringAsFixed(2)} °C"),
+              const SizedBox(height: 20),
+              buildDataCard("Heart Raw: $heartRaw"),
             ],
           ),
         ),
@@ -109,6 +121,7 @@ class _HealthMonitorState extends State<HealthMonitor> {
       child: Text(
         text,
         style: const TextStyle(fontSize: 24),
+        textAlign: TextAlign.center,
       ),
     );
   }
