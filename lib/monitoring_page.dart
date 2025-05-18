@@ -14,7 +14,9 @@ class _HealthMonitorState extends State<HealthMonitor> {
   double dhtTemperature = 0.0;
   double humidity = 0.0;
   double kyTemperature = 0.0;
-  int heartRaw = 0;
+  double mainTemperature = 0.0;
+  double heartRate = 0.0;
+  double spO2 = 0.0;
 
   @override
   void initState() {
@@ -26,7 +28,7 @@ class _HealthMonitorState extends State<HealthMonitor> {
     try {
       await Firebase.initializeApp();
 
-      dbRef.child("dht11/temperature").onValue.listen((event) {
+      dbRef.child("sensor_data/dht11_temp").onValue.listen((event) {
         final val = event.snapshot.value;
         if (val != null) {
           setState(() {
@@ -35,7 +37,7 @@ class _HealthMonitorState extends State<HealthMonitor> {
         }
       });
 
-      dbRef.child("dht11/humidity").onValue.listen((event) {
+      dbRef.child("sensor_data/humidity").onValue.listen((event) {
         final val = event.snapshot.value;
         if (val != null) {
           setState(() {
@@ -44,7 +46,7 @@ class _HealthMonitorState extends State<HealthMonitor> {
         }
       });
 
-      dbRef.child("ky028/temperature").onValue.listen((event) {
+      dbRef.child("sensor_data/ky028_temp").onValue.listen((event) {
         final val = event.snapshot.value;
         if (val != null) {
           setState(() {
@@ -53,11 +55,29 @@ class _HealthMonitorState extends State<HealthMonitor> {
         }
       });
 
-      dbRef.child("hw827/heart_raw").onValue.listen((event) {
+      dbRef.child("sensor_data/temperature").onValue.listen((event) {
         final val = event.snapshot.value;
         if (val != null) {
           setState(() {
-            heartRaw = int.tryParse(val.toString()) ?? 0;
+            mainTemperature = double.tryParse(val.toString()) ?? 0.0;
+          });
+        }
+      });
+
+      dbRef.child("sensor_data/heart_rate").onValue.listen((event) {
+        final val = event.snapshot.value;
+        if (val != null) {
+          setState(() {
+            heartRate = double.tryParse(val.toString()) ?? 0.0;
+          });
+        }
+      });
+
+      dbRef.child("sensor_data/spo2").onValue.listen((event) {
+        final val = event.snapshot.value;
+        if (val != null) {
+          setState(() {
+            spO2 = double.tryParse(val.toString()) ?? 0;
           });
         }
       });
@@ -81,6 +101,8 @@ class _HealthMonitorState extends State<HealthMonitor> {
           },
           icon: const Icon(Icons.arrow_back_outlined),
         ),
+        title: const Text("Health Monitor"),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -98,13 +120,17 @@ class _HealthMonitorState extends State<HealthMonitor> {
                 ),
               ),
               const SizedBox(height: 30),
-              buildDataCard("Room Temperature: ${dhtTemperature.toStringAsFixed(2)} °C"),
+              buildDataCard("Room Temperature : ${dhtTemperature.toStringAsFixed(2)} °C"),
               const SizedBox(height: 20),
-              buildDataCard("Room Humidity: ${humidity.toStringAsFixed(2)}%"),
+              buildDataCard("Humidity: ${humidity.toStringAsFixed(2)}%"),
               const SizedBox(height: 20),
-              buildDataCard("Body Temperature: ${kyTemperature.toStringAsFixed(2)} °C"),
+              buildDataCard("Body Temprature: ${kyTemperature.toStringAsFixed(2)} °C"),
               const SizedBox(height: 20),
-              buildDataCard("Heart Rate: $heartRaw"),
+      //        buildDataCard("Main Temperature: ${mainTemperature.toStringAsFixed(2)} °C"),
+              const SizedBox(height: 20),
+              buildDataCard("Heart Rate: $heartRate bpm"),
+              const SizedBox(height: 20),
+              buildDataCard("SpO2: $spO2%"),
             ],
           ),
         ),
@@ -117,7 +143,17 @@ class _HealthMonitorState extends State<HealthMonitor> {
       height: 150,
       width: double.infinity,
       alignment: Alignment.center,
-      color: const Color.fromRGBO(217, 217, 217, 1),
+      decoration: BoxDecoration(
+        color: const Color.fromRGBO(217, 217, 217, 1),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
       child: Text(
         text,
         style: const TextStyle(fontSize: 24),
