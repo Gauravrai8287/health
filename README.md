@@ -89,11 +89,9 @@ Edit
   "humidity": 60
 }
 🚀 Future Improvements
-⚠️ Abnormal value alerts (SMS or push notification)
-
-📊 Data logging and visualization
-
-👥 Multi-user support in app
+Abnormal value alerts (SMS or push notification)
+ Data logging and visualization
+ Multi-user support in app
 
 
 
