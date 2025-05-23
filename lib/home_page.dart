@@ -5,16 +5,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:health/monitoring_page.dart';
+import 'package:health/login_page.dart';
 
 class hame_page extends StatelessWidget {
   const hame_page({super.key});
-  Future<void> _signOut(BuildContext context) async {
+ Future<void> _signOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
-      
-      Navigator.pushReplacementNamed(context, '/login');
+
+      // Navigate to login page after sign out
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
     } catch (e) {
-      print("Error signing out: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error signing out: $e")),
+      );
     }
   }
 

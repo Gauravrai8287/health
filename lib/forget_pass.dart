@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:health/login_page.dart';
 
 class ForgetPass extends StatefulWidget {
   const ForgetPass({super.key});
@@ -13,28 +14,50 @@ class _ForgetPassState extends State<ForgetPass> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _sendPasswordResetEmail() async {
-    if (_emailController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your email")),
-      );
-      return;
-    }
+  final email = _emailController.text.trim();
 
-    try {
-      await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Reset link sent! Check your email")),
-      );
-
-    
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }
+  if (email.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter your email")),
+    );
+    return;
   }
+
+  try {
+    await _auth.sendPasswordResetEmail(email: email);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Reset link has been sent to your email.")),
+    );
+
+    // Wait for a moment before navigating (optional, for user to see the message)
+    await Future.delayed(const Duration(seconds: 2));
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (route) => false,
+    );
+  } on FirebaseAuthException catch (e) {
+    String errorMessage;
+    if (e.code == 'user-not-found') {
+      errorMessage = 'No user found with this email.';
+    } else if (e.code == 'invalid-email') {
+      errorMessage = 'Invalid email address.';
+    } else {
+      errorMessage = 'Error: ${e.message}';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMessage)),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Unexpected Error: $e")),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

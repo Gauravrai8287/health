@@ -18,36 +18,59 @@ class _SignupPageState extends State<SignupPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _registerUser(BuildContext context) async {
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email and password cannot be empty.")),
+      );
+      return;
+    }
+
     try {
-    
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: email,
+        password: password,
       );
 
-      String uid = userCredential.user!.uid;
-
-      await _firestore.collection('users').doc(uid).set({
-        'email': _emailController.text.trim(),
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'email': email,
       });
 
-      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User Registered Successfully")),
+        const SnackBar(content: Text("Signup successful. Please log in.")),
       );
 
-      
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()), 
+      // ✅ Navigate to login page after 1 second
+      Future.delayed(const Duration(seconds: 1), () {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (route) => false,
+        );
+      });
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'email-already-in-use') {
+        errorMessage = 'This email is already in use. Please log in instead.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (e.code == 'weak-password') {
+        errorMessage = 'Password must be at least 6 characters.';
+      } else {
+        errorMessage = 'Error: ${e.message}';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(content: Text("Unexpected error: $e")),
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

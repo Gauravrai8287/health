@@ -126,8 +126,6 @@ class _HealthMonitorState extends State<HealthMonitor> {
               const SizedBox(height: 20),
               buildDataCard("Body Temprature: ${kyTemperature.toStringAsFixed(2)} °C"),
               const SizedBox(height: 20),
-      //        buildDataCard("Main Temperature: ${mainTemperature.toStringAsFixed(2)} °C"),
-              const SizedBox(height: 20),
               buildDataCard("Heart Rate: $heartRate bpm"),
               const SizedBox(height: 20),
               buildDataCard("SpO2: $spO2%"),
